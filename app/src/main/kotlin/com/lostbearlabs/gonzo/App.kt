@@ -8,28 +8,28 @@ import org.apache.log4j.Level
 import org.apache.log4j.Logger
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ListBranchCommand.ListMode
+import org.eclipse.jgit.lib.BranchTrackingStatus
+import org.eclipse.jgit.lib.Ref
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import java.io.File
 
 
-//class App {
-//    val greeting: String
-//        get() {
-//            return "Hello World!"
-//        }
-//}
+// TODO:
+// - gitc
+//   - allow branch selection (replaces gitc)
+//   - allow branch deletion (replaces gitc)
+//   - allow cleanup gone branches (replaces git-clean-branches)
+//   - allow create branch (replaces gcplb)
+//   - allow commit changes (replaces gca)
+//   - allow push, pull, fetch (alternatives to gpu, gpd, gf)
+
 
 fun main(args: Array<String>) {
     BasicConfigurator.configure()
     Logger.getRootLogger().level = Level.INFO;
 
-    val argText = args.joinToString(" ")
-    println("hello: $argText")
-
     val workingDirectory = System.getProperty("user.dir")
-    println("workingDirectory: $workingDirectory")
-
 
     val level = Logger.getRootLogger().level
     Logger.getRootLogger().level = Level.ERROR; // suppress annoying warning where jgit tries to launch a shell to find non-default git path
@@ -37,19 +37,43 @@ fun main(args: Array<String>) {
     Logger.getRootLogger().level = level;
 
     repo.use {
-        println("make repo...")
         val git = Git(repo)
         git.use {
 
-            println("get branches...")
-            val prefix = "refs/heads/"
             val listRefsBranches = git.branchList().setListMode(ListMode.ALL).call()
+                    .filter{ it.isLocal() }
+                    .sortedBy{ it.sortName() }
+
+            val currentBranch = repo.fullBranch
+
             for (refBranch in listRefsBranches) {
-                if (refBranch.name.startsWith(prefix, 0)) {
-                    println("Branch : " + refBranch.name.removePrefix(prefix))
+                val prefix = if(refBranch.name==currentBranch) " * " else "   "
+                println(prefix + refBranch.localName() )
+
+                val status = BranchTrackingStatus.of(repo, refBranch.name)
+                if(status != null) {
+                    println("     -> ${status.remoteTrackingBranch}, ahead ${status.aheadCount}, behind ${status.behindCount}")
                 }
             }
-            println("end of branches")
         }
     }
 }
+
+
+fun Ref.isLocal(): Boolean  {
+    return this.name.startsWith("refs/heads/")
+}
+
+fun Ref.localName(): String {
+    return this.name.removePrefix("refs/heads/")
+}
+
+fun Ref.sortName(): String {
+    return when(this.name) {
+        "refs/heads/develop" -> "_0${this.name}"
+        "refs/heads/main" -> "_1${this.name}"
+        "refs/heads/master" -> "_2${this.name}"
+        else -> this.name
+    }
+}
+
