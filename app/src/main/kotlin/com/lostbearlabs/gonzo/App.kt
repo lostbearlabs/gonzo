@@ -6,14 +6,14 @@ import org.apache.log4j.Logger
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ListBranchCommand.ListMode
 import org.eclipse.jgit.api.errors.NotMergedException
-import org.eclipse.jgit.lib.BranchTrackingStatus
-import org.eclipse.jgit.lib.Ref
-import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.lib.*
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import java.io.File
 
 
 // TODO:
+//  - add "?" command to print help
+//  - fetch doesn't work (remote hung up unexpectedly ... ssh config issue?)
 //  - allow cleanup gone branches (replaces git-clean-branches)
 //  - allow create branch (replaces gcplb)
 //  - allow commit changes (replaces gca)
@@ -42,11 +42,44 @@ fun main(args: Array<String>) {
                         "ls" -> showBranches(git)
                         "c" -> pickBranch(ar, git)
                         "d" -> deleteBranch(ar, git)
+                        "f" -> fetch(git)
+                        "g" -> deleteGone(git)
                     }
                 }
             }
         }
     }
+}
+
+fun deleteGone(git: Git)  {
+    // TODO: call fetch() here once it's working!
+
+    val currentBranch = git.repository.fullBranch
+    val branches = getBranches(git).filter{ isGone(git, it.name) && it.name!=currentBranch }
+    if( branches.isEmpty()) {
+        println("NO GONE BRANCHES TO DELETE")
+        return
+    }
+
+    println("Deleting GONE branches:")
+    branches.forEach {
+        val shortBranchName = Repository.shortenRefName(it.name)
+        println("   $shortBranchName")
+    }
+
+    print("Confirm delete?  Y/[N] ")
+    val resp = readLine()
+    if( resp=="Y") {
+        branches.forEach {
+            deleteBranch(git, it)
+        }
+    }
+
+    showBranches(git)
+}
+
+fun fetch(git: Git) {
+    git.fetch().setRemote("origin").call();
 }
 
 fun pickBranch(ar: List<String>, git: Git) {
@@ -100,19 +133,25 @@ fun deleteBranch(ar: List<String>, git: Git) {
         return
     }
 
+    if (!deleteBranch(git, ref)) return
+
+    showBranches(git)
+}
+
+private fun deleteBranch(git: Git, ref: Ref): Boolean {
     try {
         git.branchDelete().setBranchNames(ref.name).call()
     } catch (ex: NotMergedException) {
-        println("branch not merged, delete anyway? Y/[N] ")
+        val shortBranchName = Repository.shortenRefName(ref.name)
+        println("branch $shortBranchName not merged, delete anyway? Y/[N] ")
         val cmd = readLine()
         if (cmd == "Y") {
             git.branchDelete().setBranchNames(ref.name).setForce(true).call()
         } else {
-            return
+            return false
         }
     }
-
-    showBranches(git)
+    return true
 }
 
 
@@ -127,11 +166,29 @@ fun showBranches(git: Git) {
         val prefix = if (refBranch.name == currentBranch) " * " else "   "
         println("$n)  $prefix  ${refBranch.localName()}")
 
-        val status = BranchTrackingStatus.of(git.repository, refBranch.name)
-        if (status != null) {
-            println("     -> ${status.remoteTrackingBranch}, ahead ${status.aheadCount}, behind ${status.behindCount}")
+        if( isGone(git, refBranch.name)) {
+            val shortBranchName = Repository.shortenRefName(refBranch.name)
+            val config = BranchConfig(git.repository.config,
+                    shortBranchName)
+            println("         -> (GONE) ${config.trackingBranch}")
+        } else {
+            val status = BranchTrackingStatus.of(git.repository, refBranch.name)
+            if (status != null) {
+                println("         -> ${status.remoteTrackingBranch}, ahead ${status.aheadCount}, behind ${status.behindCount}")
+            }
         }
     }
+}
+
+private fun isGone(git: Git, fullBranchName: String) : Boolean {
+    val shortBranchName = Repository.shortenRefName(fullBranchName)
+    val config = BranchConfig(git.repository.config, shortBranchName)
+
+    val trackingBranch: String? = config.trackingBranch
+    if( trackingBranch!=null ) {
+        git.repository.exactRef(trackingBranch) ?: return true
+    }
+    return false
 }
 
 private fun getBranches(git: Git): List<Ref> {
