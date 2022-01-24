@@ -9,16 +9,12 @@ import org.eclipse.jgit.api.errors.NotMergedException
 import org.eclipse.jgit.lib.*
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import java.io.File
+import java.util.concurrent.TimeUnit
 
 
 // TODO:
-//  - add "?" command to print help
-//  - fetch doesn't work (remote hung up unexpectedly ... ssh config issue?)
-//  - allow cleanup gone branches (replaces git-clean-branches)
 //  - allow create branch (replaces gcplb)
 //  - allow commit changes (replaces gca)
-//  - allow push, pull, fetch (alternatives to gpu, gpd, gf)
-
 
 fun main(args: Array<String>) {
     BasicConfigurator.configure()
@@ -43,6 +39,8 @@ fun main(args: Array<String>) {
                         "c" -> pickBranch(ar, git)
                         "d" -> deleteBranch(ar, git)
                         "f" -> fetch(git)
+                        "pd" -> pull(git)
+                        "pu" -> push(git)
                         "g" -> deleteGone(git)
                     }
                 }
@@ -78,8 +76,48 @@ fun deleteGone(git: Git)  {
     showBranches(git)
 }
 
+// https://stackoverflow.com/a/41495542/4540
+fun String.runCommand(workingDir: File) {
+    ProcessBuilder(*split(" ").toTypedArray())
+            .directory(workingDir)
+            .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            .redirectError(ProcessBuilder.Redirect.INHERIT)
+            .start()
+            .waitFor(5, TimeUnit.MINUTES)
+
+}
+
 fun fetch(git: Git) {
-    git.fetch().setRemote("origin").call();
+    println("fetch ...")
+
+    // TODO: ideally would just use jgit fetch, but I'm having SSH config issues?
+    "git fetch -p --all --quiet".runCommand(git.repository.directory.parentFile)
+
+    println("... fetch done")
+    showBranches(git)
+}
+
+fun pull(git: Git) {
+    println("pull ...")
+
+    // TODO: ideally would just use jgit pull, but I'm having SSH config issues?
+    "git pull -p --quiet".runCommand(git.repository.directory.parentFile)
+
+    println("... pull done")
+    showBranches(git)
+}
+
+fun push(git: Git)  {
+    println("push ...")
+
+    val currentBranch = git.repository.fullBranch
+    val shortBranchName = Repository.shortenRefName(currentBranch)
+
+    // TODO: ideally would just use jgit push, but I'm having SSH config issues?
+    "git push --set-upstream origin $shortBranchName".runCommand(git.repository.directory.parentFile)
+
+    println("... pull done")
+    showBranches(git)
 }
 
 fun pickBranch(ar: List<String>, git: Git) {
