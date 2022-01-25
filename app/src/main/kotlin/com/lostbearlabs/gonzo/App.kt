@@ -6,9 +6,6 @@ import org.apache.log4j.Logger
 import kotlin.system.exitProcess
 
 
-// TODO:
-//  - allow commit changes (replaces gca)
-
 data class Command(val cmd: String, val title: String, val params: List<String>, val fn: (repo: WorkingRepo, List<String>) -> Unit)
 
 val commands: List<Command> = listOf(

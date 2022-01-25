@@ -180,6 +180,7 @@ class WorkingRepo : AutoCloseable {
     }
 
     fun createBranch(name: String) {
+        // TODO: if wanted, this would be the place to add parent branch tracking
         git.checkout().setCreateBranch(true).setName(name).call()
         this.showBranches()
     }
