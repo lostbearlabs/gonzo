@@ -13,7 +13,7 @@ data class Command(val cmd: String, val title: String, val params: List<String>,
 
 val commands: List<Command> = listOf(
         Command("ls", "show branches", listOf()) { repo: WorkingRepo, _: List<String> -> repo.showBranches() },
-        Command("c", "select branch", listOf("Branch")) { repo: WorkingRepo, ar: List<String> -> repo.pickBranch(ar[1]) },
+        Command("c", "choose branch", listOf("Branch")) { repo: WorkingRepo, ar: List<String> -> repo.pickBranch(ar[1]) },
         Command("d", "delete branch", listOf("Branch")) { repo: WorkingRepo, ar: List<String> -> repo.deleteBranch(ar[1]) },
         Command("f", "fetch", listOf()) { repo: WorkingRepo, _: List<String> -> repo.fetch() },
         Command("pd", "pull", listOf()) { repo: WorkingRepo, _: List<String> -> repo.pull() },
@@ -21,6 +21,7 @@ val commands: List<Command> = listOf(
         Command("g", "delete gone branches", listOf()) { repo: WorkingRepo, _: List<String> -> repo.deleteGone() },
         Command("br", "create branch", listOf("BranchName")) { repo: WorkingRepo, ar: List<String> -> repo.createBranch(ar[1]) },
         Command("bt", "create ticket branch", listOf("TicketId", "BranchName")) { repo: WorkingRepo, ar: List<String> -> repo.createTicketBranch(ar[1], ar[2]) },
+        Command("ca", "commit all", listOf("CommitMessage")) {repo: WorkingRepo, ar: List<String> -> repo.commitAll(ar[1]) },
         Command("?", "show usage", listOf()) { _: WorkingRepo, _: List<String> -> printHelp() },
         Command("q", "quit", listOf()) { _: WorkingRepo, _: List<String> -> exitProcess(0) }
 )
@@ -61,7 +62,7 @@ private fun runCommand(ar: List<String>, repo: WorkingRepo) {
     val cmd = commands.find { it.cmd == ar[0] }
     if (cmd != null) {
         if (ar.size != cmd.params.size + 1) {
-            println("Wrong # args:  ${cmd.title} ${cmd.params.joinToString(" ")}")
+            println("Wrong # args:  ${cmd.cmd} ${cmd.params.joinToString(" ")}  (got ${ar.size-1}, expected ${cmd.params.size}")
             return
         }
         cmd.fn(repo, ar)

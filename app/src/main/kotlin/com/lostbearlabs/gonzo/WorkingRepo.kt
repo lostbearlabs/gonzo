@@ -188,6 +188,19 @@ class WorkingRepo : AutoCloseable {
         this.createBranch("${System.getProperty("user.name")}/$ticket/$name")
     }
 
+    fun commitAll(message: String) {
+        var prefix = ""
+        val currentBranch = git.repository.fullBranch
+        val shortBranchName = Repository.shortenRefName(currentBranch)
+        var ar = shortBranchName.split("/")
+        if( ar.size == 3 ) {
+            prefix = ar[1] + " "
+        }
+
+        git.add().addFilepattern(".").call()
+        git.commit().setMessage(prefix+message).call()
+    }
+
     private fun isGone(fullBranchName: String) : Boolean {
         val shortBranchName = Repository.shortenRefName(fullBranchName)
         val config = BranchConfig(git.repository.config, shortBranchName)
