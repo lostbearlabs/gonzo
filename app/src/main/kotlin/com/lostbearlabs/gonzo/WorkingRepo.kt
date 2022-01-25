@@ -88,7 +88,7 @@ class WorkingRepo : AutoCloseable {
         // TODO: ideally would just use jgit push, but I'm having SSH config issues?
         "git push --set-upstream origin $shortBranchName".runCommand(git.repository.directory.parentFile)
 
-        println("... pull done")
+        println("... push done")
         this.showBranches()
     }
 
@@ -177,6 +177,15 @@ class WorkingRepo : AutoCloseable {
                 }
             }
         }
+    }
+
+    fun createBranch(name: String) {
+        git.checkout().setCreateBranch(true).setName(name).call()
+        this.showBranches()
+    }
+
+    fun createTicketBranch(ticket: String, name: String) {
+        this.createBranch("${System.getProperty("user.name")}/$ticket/$name")
     }
 
     private fun isGone(fullBranchName: String) : Boolean {

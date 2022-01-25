@@ -7,7 +7,6 @@ import kotlin.system.exitProcess
 
 
 // TODO:
-//  - allow create branch (replaces gcplb)
 //  - allow commit changes (replaces gca)
 
 data class Command(val cmd: String, val title: String, val params: List<String>, val fn: (repo: WorkingRepo, List<String>) -> Unit)
@@ -20,6 +19,8 @@ val commands: List<Command> = listOf(
         Command("pd", "pull", listOf()) { repo: WorkingRepo, _: List<String> -> repo.pull() },
         Command("pu", "push", listOf()) { repo: WorkingRepo, _: List<String> -> repo.push() },
         Command("g", "delete gone branches", listOf()) { repo: WorkingRepo, _: List<String> -> repo.deleteGone() },
+        Command("br", "create branch", listOf("BranchName")) { repo: WorkingRepo, ar: List<String> -> repo.createBranch(ar[1]) },
+        Command("bt", "create ticket branch", listOf("TicketId", "BranchName")) { repo: WorkingRepo, ar: List<String> -> repo.createTicketBranch(ar[1], ar[2]) },
         Command("?", "show usage", listOf()) { _: WorkingRepo, _: List<String> -> printHelp() },
         Command("q", "quit", listOf()) { _: WorkingRepo, _: List<String> -> exitProcess(0) }
 )
