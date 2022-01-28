@@ -22,7 +22,7 @@ class WorkingRepo : AutoCloseable {
     }
 
     fun deleteGone()  {
-        this.fetch()
+        this.fetchAll()
 
         val currentBranch = git.repository.fullBranch
         val branches = this.getBranches().filter{ this.isGone(it.name) && it.name!=currentBranch }
@@ -59,13 +59,13 @@ class WorkingRepo : AutoCloseable {
 
     }
 
-    fun fetch() {
-        println("fetch ...")
+    fun fetchAll() {
+        println("fetch all ...")
 
         // TODO: ideally would just use jgit fetch, but I'm having SSH config issues?
         "git fetch -p --all --quiet".runCommand(git.repository.directory.parentFile)
 
-        println("... fetch done")
+        println("... fetch all done")
         this.showBranches()
     }
 

@@ -12,10 +12,10 @@ val commands: List<Command> = listOf(
         Command("ls", "show branches", listOf()) { repo: WorkingRepo, _: List<String> -> repo.showBranches() },
         Command("c", "choose branch", listOf("Branch")) { repo: WorkingRepo, ar: List<String> -> repo.pickBranch(ar[1]) },
         Command("d", "delete branch", listOf("Branch")) { repo: WorkingRepo, ar: List<String> -> repo.deleteBranch(ar[1]) },
-        Command("f", "fetch", listOf()) { repo: WorkingRepo, _: List<String> -> repo.fetch() },
-        Command("pd", "pull", listOf()) { repo: WorkingRepo, _: List<String> -> repo.pull() },
-        Command("pu", "push", listOf()) { repo: WorkingRepo, _: List<String> -> repo.push() },
-        Command("g", "delete gone branches", listOf()) { repo: WorkingRepo, _: List<String> -> repo.deleteGone() },
+        Command("f", "fetch all", listOf()) { repo: WorkingRepo, _: List<String> -> repo.fetchAll() },
+        Command("pd", "pull down", listOf()) { repo: WorkingRepo, _: List<String> -> repo.pull() },
+        Command("pu", "push up", listOf()) { repo: WorkingRepo, _: List<String> -> repo.push() },
+        Command("dg", "delete gone branches", listOf()) { repo: WorkingRepo, _: List<String> -> repo.deleteGone() },
         Command("br", "create branch", listOf("BranchName")) { repo: WorkingRepo, ar: List<String> -> repo.createBranch(ar[1]) },
         Command("bt", "create ticket branch", listOf("TicketId", "BranchName")) { repo: WorkingRepo, ar: List<String> -> repo.createTicketBranch(ar[1], ar[2]) },
         Command("ca", "commit all", listOf("CommitMessage")) {repo: WorkingRepo, ar: List<String> -> repo.commitAll(ar[1]) },
@@ -64,6 +64,8 @@ private fun runCommand(ar: List<String>, repo: WorkingRepo) {
             return
         }
         cmd.fn(repo, ar)
+    } else {
+        println("Unknown command: ${ar[0]}")
     }
 }
 
