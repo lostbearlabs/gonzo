@@ -20,6 +20,7 @@ val commands: List<Command> = listOf(
         Command("bt", "create ticket branch", listOf("TicketId", "BranchName")) { repo: WorkingRepo, ar: List<String> -> repo.createTicketBranch(ar[1], ar[2]) },
         Command("ca", "commit all", listOf("CommitMessage")) {repo: WorkingRepo, ar: List<String> -> repo.commitAll(ar[1]) },
         Command("scan", "scan ~/dev for repos with uncommitted changes", listOf()) {_: WorkingRepo, _: List<String> -> ScanUncommitted().scan() },
+        Command("check.dotfiles", "check whether any cruft has crept into dotfiles", listOf()) { _: WorkingRepo, _: List<String> -> CheckDotFiles().check() },
         Command("?", "show usage", listOf()) { _: WorkingRepo, _: List<String> -> printHelp() },
         Command("q", "quit", listOf()) { _: WorkingRepo, _: List<String> -> exitProcess(0) }
 )
