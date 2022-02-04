@@ -190,6 +190,14 @@ class WorkingRepo : AutoCloseable {
     }
 
     fun commitAll(message: String) {
+
+        val spotless = File(File(git.repository.directory.parentFile, "tool_build"), "spotless")
+        if( spotless.isDirectory ) {
+            println("running spotless before commit...")
+            "./gradlew spotlessApply".runCommand(git.repository.directory.parentFile)
+            println("... ran spotless")
+        }
+
         var prefix = ""
         val currentBranch = git.repository.fullBranch
         val shortBranchName = Repository.shortenRefName(currentBranch)
