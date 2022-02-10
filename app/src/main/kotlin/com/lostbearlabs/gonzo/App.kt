@@ -21,7 +21,7 @@ val commands: List<Command> = listOf(
         Command("ca", "commit all", listOf("CommitMessage")) { ar: List<String> -> WorkingRepo().use { it.commitAll(ar[1]) } },
         Command("scan", "scan ~/dev for repos with uncommitted changes", listOf()) { ScanUncommitted().scan() },
         Command("check.dotfiles", "check whether any cruft has crept into dotfiles", listOf()) { CheckDotFiles().check() },
-        Command("?", "show usage", listOf()) { printHelp() },
+        Command("help", "show commands", listOf()) { printHelp() },
         Command("q", "quit", listOf()) { exitProcess(0) }
 )
 
