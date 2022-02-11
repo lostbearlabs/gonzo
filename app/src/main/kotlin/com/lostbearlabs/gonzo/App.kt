@@ -62,7 +62,7 @@ private fun runCommand(ar: List<String>) {
         }
         cmd.fn(ar)
     } else {
-        println("Unknown command: ${ar[0]}")
+        println("Unknown command: ${ar[0]}, try 'help'")
     }
 }
 
