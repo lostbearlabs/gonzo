@@ -10,23 +10,42 @@ import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.system.exitProcess
 
 class WorkingRepo : AutoCloseable {
-    private val workingDirectory : String = System.getProperty("user.dir")
-    private val repo: Repository = FileRepositoryBuilder.create(File(workingDirectory, ".git"))
-    private val git: Git = Git(repo)
+    private val workingDirectory: String = System.getProperty("user.dir")
+    private val repo: Repository
+    private val git: Git
+
+    init {
+        var dir = File(workingDirectory)
+        while (true) {
+            if (dir.absolutePath == "/") {
+                println("NO .git FOLDER FOUND AT THIS PATH OR ABOVE, $workingDirectory")
+                exitProcess(1)
+            }
+            val probe = File(dir, ".git")
+            if (probe.isDirectory) {
+                break
+            }
+            dir = dir.parentFile
+        }
+
+        repo = FileRepositoryBuilder.create(File(dir, ".git"))
+        git = Git(repo)
+    }
 
     override fun close() {
         this.git.close()
         this.repo.close()
     }
 
-    fun deleteGone()  {
+    fun deleteGone() {
         this.fetchAll()
 
         val currentBranch = git.repository.fullBranch
-        val branches = this.getBranches().filter{ this.isGone(it.name) && it.name!=currentBranch }
-        if( branches.isEmpty()) {
+        val branches = this.getBranches().filter { this.isGone(it.name) && it.name != currentBranch }
+        if (branches.isEmpty()) {
             println("NO GONE BRANCHES TO DELETE")
             return
         }
@@ -39,7 +58,7 @@ class WorkingRepo : AutoCloseable {
 
         print("Confirm delete?  Y/[N] ")
         val resp = readLine()
-        if( resp=="Y") {
+        if (resp == "Y") {
             branches.forEach {
                 this.deleteBranch(it)
             }
@@ -79,7 +98,7 @@ class WorkingRepo : AutoCloseable {
         this.showBranches()
     }
 
-    fun push()  {
+    fun push() {
         println("push ...")
 
         val currentBranch = git.repository.fullBranch
@@ -165,7 +184,7 @@ class WorkingRepo : AutoCloseable {
             val prefix = if (refBranch.name == currentBranch) " * " else "   "
             println("$n)  $prefix  ${refBranch.localName()}")
 
-            if( this.isGone(refBranch.name)) {
+            if (this.isGone(refBranch.name)) {
                 val shortBranchName = Repository.shortenRefName(refBranch.name)
                 val config = BranchConfig(git.repository.config,
                         shortBranchName)
@@ -204,7 +223,7 @@ class WorkingRepo : AutoCloseable {
     fun commitAll(message: String) {
 
         val spotless = File(File(git.repository.directory.parentFile, "tool_build"), "spotless")
-        if( spotless.isDirectory ) {
+        if (spotless.isDirectory) {
             println("running spotless before commit...")
             "./gradlew spotlessApply".runCommand(git.repository.directory.parentFile)
             println("... ran spotless")
@@ -214,21 +233,21 @@ class WorkingRepo : AutoCloseable {
         var prefix = ""
         val currentBranch = git.repository.fullBranch
         val shortBranchName = Repository.shortenRefName(currentBranch)
-        var ar = shortBranchName.split("/")
-        if( ar.size >1 ) {
+        val ar = shortBranchName.split("/")
+        if (ar.size > 1) {
             prefix = ar[1] + " "
         }
 
         git.add().addFilepattern(".").call()
-        git.commit().setMessage(prefix+message).call()
+        git.commit().setMessage(prefix + message).call()
     }
 
-    private fun isGone(fullBranchName: String) : Boolean {
+    private fun isGone(fullBranchName: String): Boolean {
         val shortBranchName = Repository.shortenRefName(fullBranchName)
         val config = BranchConfig(git.repository.config, shortBranchName)
 
         val trackingBranch: String? = config.trackingBranch
-        if( trackingBranch!=null ) {
+        if (trackingBranch != null) {
             git.repository.exactRef(trackingBranch) ?: return true
         }
         return false
