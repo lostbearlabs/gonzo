@@ -189,6 +189,18 @@ class WorkingRepo : AutoCloseable {
         this.createBranch("${System.getProperty("user.name")}/$ticket/$name")
     }
 
+    fun createFeatureBranch(ticket: String, name: String) {
+        this.createBranch("feature/${ticket}/${System.getProperty("user.name")}/$name")
+    }
+
+    fun createBugBranch(ticket: String, name: String) {
+        this.createBranch("bug/${ticket}/${System.getProperty("user.name")}/$name")
+    }
+
+    fun createChoreBranch(ticket: String, name: String) {
+        this.createBranch("chore/${ticket}/${System.getProperty("user.name")}/$name")
+    }
+
     fun commitAll(message: String) {
 
         val spotless = File(File(git.repository.directory.parentFile, "tool_build"), "spotless")
@@ -198,11 +210,12 @@ class WorkingRepo : AutoCloseable {
             println("... ran spotless")
         }
 
+        // if ticket number present as XXX/ticket-number/... then start the commit message with it
         var prefix = ""
         val currentBranch = git.repository.fullBranch
         val shortBranchName = Repository.shortenRefName(currentBranch)
         var ar = shortBranchName.split("/")
-        if( ar.size == 3 ) {
+        if( ar.size >1 ) {
             prefix = ar[1] + " "
         }
 

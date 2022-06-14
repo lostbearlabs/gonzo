@@ -16,8 +16,13 @@ val commands: List<Command> = listOf(
         Command("pd", "pull down", listOf()) { _ -> WorkingRepo().use { it.pull() } },
         Command("pu", "push up", listOf()) { _ -> WorkingRepo().use { it.push() } },
         Command("dg", "delete gone branches", listOf()) { _ -> WorkingRepo().use { it.deleteGone() } },
+
         Command("br", "create branch", listOf("BranchName")) { ar: List<String> -> WorkingRepo().use { it.createBranch(ar[1]) } },
         Command("bt", "create ticket branch", listOf("TicketId", "BranchName")) { ar: List<String> -> WorkingRepo().use { it.createTicketBranch(ar[1], ar[2]) } },
+        Command("bf", "create feature branch", listOf("TicketId", "BranchName")) { ar: List<String> -> WorkingRepo().use { it.createFeatureBranch(ar[1], ar[2]) } },
+        Command("bb", "create bug branch", listOf("TicketId", "BranchName")) { ar: List<String> -> WorkingRepo().use { it.createBugBranch(ar[1], ar[2]) } },
+        Command("bc", "create chore branch", listOf("TicketId", "BranchName")) { ar: List<String> -> WorkingRepo().use { it.createChoreBranch(ar[1], ar[2]) } },
+
         Command("ca", "commit all", listOf("CommitMessage")) { ar: List<String> -> WorkingRepo().use { it.commitAll(ar[1]) } },
         Command("scan", "scan ~/dev for repos with uncommitted changes", listOf()) { ScanUncommitted().scan() },
         Command("check.dotfiles", "check whether any cruft has crept into dotfiles", listOf()) { CheckDotFiles().check() },
