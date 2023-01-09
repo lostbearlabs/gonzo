@@ -161,7 +161,7 @@ class WorkingRepo : AutoCloseable {
             git.branchDelete().setBranchNames(ref.name).call()
         } catch (ex: NotMergedException) {
             val shortBranchName = Repository.shortenRefName(ref.name)
-            println("branch $shortBranchName not merged, delete anyway? Y/[N] ")
+            print("branch $shortBranchName not merged, delete anyway? Y/[N] ")
             val cmd = readLine()
             if (cmd == "Y") {
                 git.branchDelete().setBranchNames(ref.name).setForce(true).call()
