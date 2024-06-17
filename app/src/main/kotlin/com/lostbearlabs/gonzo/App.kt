@@ -24,6 +24,7 @@ val commands: List<Command> = listOf(
         Command("bc", "create chore branch", listOf("TicketId", "BranchName")) { ar: List<String> -> WorkingRepo().use { it.createChoreBranch(ar[1], ar[2]) } },
 
         Command("ca", "commit all", listOf("CommitMessage")) { ar: List<String> -> WorkingRepo().use { it.commitAll(ar[1]) } },
+        Command("cam", "commit amend", listOf()) { _: List<String> -> WorkingRepo().use { it.commitAmend() } },
         Command("scan", "scan ~/dev for repos with uncommitted changes", listOf()) { ScanUncommitted().scan() },
         Command("check.dotfiles", "check whether any cruft has crept into dotfiles", listOf()) { CheckDotFiles().check() },
 

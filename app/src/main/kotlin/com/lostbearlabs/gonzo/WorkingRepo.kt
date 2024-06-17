@@ -12,6 +12,7 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 
+
 class WorkingRepo : AutoCloseable {
     private val workingDirectory: String = System.getProperty("user.dir")
     private val repo: Repository
@@ -222,12 +223,7 @@ class WorkingRepo : AutoCloseable {
 
     fun commitAll(message: String) {
 
-        val spotless = File(File(git.repository.directory.parentFile, "tool_build"), "spotless")
-        if (spotless.isDirectory) {
-            println("running spotless before commit...")
-            "./gradlew spotlessApply".runCommand(git.repository.directory.parentFile)
-            println("... ran spotless")
-        }
+        runSpotless()
 
         // if ticket number present as XXX/ticket-number/... then start the commit message with it
         var prefix = ""
@@ -240,6 +236,27 @@ class WorkingRepo : AutoCloseable {
 
         git.add().addFilepattern(".").call()
         git.commit().setMessage(prefix + message).call()
+    }
+
+    fun commitAmend() {
+
+        runSpotless()
+
+        val commits = git.log().setMaxCount(1).call()
+        val lastCommit = commits.iterator().next()
+
+        git.add().addFilepattern(".").call()
+        git.commit().setAmend(true).setMessage(lastCommit.fullMessage).call()
+    }
+
+
+    private fun runSpotless() {
+        val spotless = File(File(git.repository.directory.parentFile, "tool_build"), "spotless")
+        if (spotless.isDirectory) {
+            println("running spotless before commit...")
+            "./gradlew spotlessApply".runCommand(git.repository.directory.parentFile)
+            println("... ran spotless")
+        }
     }
 
     private fun isGone(fullBranchName: String): Boolean {
