@@ -112,6 +112,19 @@ class WorkingRepo : AutoCloseable {
         this.showBranches()
     }
 
+    fun pushForce() {
+        println("push (force) ...")
+
+        val currentBranch = git.repository.fullBranch
+        val shortBranchName = Repository.shortenRefName(currentBranch)
+
+        // TODO: ideally would just use jgit push, but I'm having SSH config issues?
+        "git push --force --set-upstream origin $shortBranchName".runCommand(git.repository.directory.parentFile)
+
+        println("... push done")
+        this.showBranches()
+    }
+
     fun pickBranch(idxString: String) {
         val idx: Int = try {
             idxString.toInt()

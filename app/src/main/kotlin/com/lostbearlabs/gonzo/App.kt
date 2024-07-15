@@ -15,6 +15,7 @@ val commands: List<Command> = listOf(
         Command("f", "fetch all", listOf()) { _ -> WorkingRepo().use { it.fetchAll() } },
         Command("pd", "pull down", listOf()) { _ -> WorkingRepo().use { it.pull() } },
         Command("pu", "push up", listOf()) { _ -> WorkingRepo().use { it.push() } },
+        Command("puf", "push up (force)", listOf()) { _ -> WorkingRepo().use { it.pushForce() } },
         Command("dg", "delete gone branches", listOf()) { _ -> WorkingRepo().use { it.deleteGone() } },
 
         Command("br", "create branch", listOf("BranchName")) { ar: List<String> -> WorkingRepo().use { it.createBranch(ar[1]) } },
